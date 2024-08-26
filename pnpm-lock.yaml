@@ -1,0 +1,35 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      '@openzeppelin/contracts':
+        specifier: v4.9.6
+        version: 4.9.6
+    devDependencies:
+      forge-std:
+        specifier: github:foundry-rs/forge-std
+        version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/035de35f5e366c8d6ed142aec4ccb57fe2dd87d4
+      openzeppelin:
+        specifier: '@openzeppelin/contracts@v4.9.6'
+        version: link:@openzeppelin/contracts@v4.9.6
+
+packages:
+
+  '@openzeppelin/contracts@4.9.6':
+    resolution: {integrity: sha512-xSmezSupL+y9VkHZJGDoCBpmnB2ogM13ccaYDWqJTfS3dbuHkgjuwDFUmaFauBCboQMGB/S5UqUl2y54X99BmA==}
+
+  forge-std@https://codeload.github.com/foundry-rs/forge-std/tar.gz/035de35f5e366c8d6ed142aec4ccb57fe2dd87d4:
+    resolution: {tarball: https://codeload.github.com/foundry-rs/forge-std/tar.gz/035de35f5e366c8d6ed142aec4ccb57fe2dd87d4}
+    version: 1.9.3
+
+snapshots:
+
+  '@openzeppelin/contracts@4.9.6': {}
+
+  forge-std@https://codeload.github.com/foundry-rs/forge-std/tar.gz/035de35f5e366c8d6ed142aec4ccb57fe2dd87d4: {}

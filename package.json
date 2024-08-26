@@ -1,0 +1,11 @@
+{
+  "name": "@stake-dao/bridge",
+  "version": "1.0.0",
+  "devDependencies": {
+    "forge-std": "github:foundry-rs/forge-std",
+    "openzeppelin": "@openzeppelin/contracts@v4.9.6"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "v4.9.6"
+  }
+}
