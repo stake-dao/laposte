@@ -73,12 +73,12 @@ contract TokenFactory is Ownable {
     /// @param from Address from which tokens are burned/unlocked
     /// @param amount Amount of tokens to burn or unlock
     function burn(address nativeToken, address from, uint256 amount) external onlyMinter {
-        address wrappedToken = wrappedTokens[nativeToken];
-        if (wrappedToken == address(0) && !isWrapped[nativeToken] && block.chainid == 1) {
+        if (block.chainid == 1) {
             // The token exists on this chain, unlock it
             IERC20(nativeToken).safeTransferFrom(from, address(this), amount);
         } else {
             // Token is wrapped, burn it
+            address wrappedToken = wrappedTokens[nativeToken];
             if (wrappedToken == address(0)) revert WrappedTokenDoesNotExist();
             Token(wrappedToken).burn(from, amount);
         }

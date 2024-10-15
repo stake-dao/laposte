@@ -7,8 +7,9 @@ import "@forge-std/mocks/MockERC20.sol";
 import "src/ccip/Adapter.sol";
 
 import {LaPoste} from "src/LaPoste.sol";
-import {TokenFactory} from "src/TokenFactory.sol";
+
 import {Token} from "src/Token.sol";
+import {TokenFactory} from "src/TokenFactory.sol";
 
 contract TestContract is Test {
     using SafeCast for uint256;
@@ -83,7 +84,7 @@ contract TestContract is Test {
         laPoste.sendMessage{value: fee}(laPosteMessage, executionGasLimit);
     }
 
-    function test_sendMessageWithToken() public {
+    function test_sendMessageWithTokenOnMainnet() public {
         address receiver = address(this);
         uint256 executionGasLimit = 100_000;
         uint256 destinationChainId = Chains.ARBITRUM;
@@ -111,6 +112,34 @@ contract TestContract is Test {
         assertEq(IERC20(CRV).balanceOf(address(laPoste)), 0);
         assertEq(IERC20(CRV).balanceOf(address(adapter)), 0);
         assertEq(IERC20(CRV).balanceOf(address(tokenFactory)), 1e18);
+    }
+
+    function test_receiveMessageWithTokenOnSidechain() public {
+        address receiver = address(this);
+        uint256 executionGasLimit = 100_000;
+        uint256 destinationChainId = Chains.ARBITRUM;
+        bytes memory message = abi.encode(1);
+
+        IAdapter.Message memory laPosteMessage = IAdapter.Message({
+            destinationChainId: destinationChainId,
+            to: receiver,
+            sender: address(laPoste),
+            token: IAdapter.Token({tokenAddress: CRV, amount: 1e18}),
+            tokenMetadata: IAdapter.TokenMetadata({name: "Curve.fi CRV", symbol: "CRV", decimals: 18}),
+            payload: message,
+            nonce: 0
+        });
+
+        uint256 fee = getFee(destinationChainId, receiver, executionGasLimit, message);
+
+        vm.chainId(Chains.OPTIMISM);
+
+        deal(address(CRV), address(this), 1e18);
+        deal(address(this), fee);
+
+        IERC20(CRV).approve(address(tokenFactory), 1e18);
+        vm.expectRevert(TokenFactory.WrappedTokenDoesNotExist.selector);
+        laPoste.sendMessage{value: fee}(laPosteMessage, executionGasLimit);
     }
 
     function test_receiveMessageWithToken() public {
@@ -159,11 +188,9 @@ contract TestContract is Test {
         assertEq(IERC20(CRV).balanceOf(address(this)), 1e18);
     }
 
-    function test_receiveMessageWithMintedToken() public {
+    function test_receiveMessageFromSidechain() public {
         address receiver = address(this);
-        uint256 destinationChainId = Chains.ARBITRUM;
-
-        deal(CRV, address(tokenFactory), 1e18);
+        uint256 destinationChainId = Chains.MAINNET;
 
         IAdapter.Message memory laPosteMessage = IAdapter.Message({
             destinationChainId: destinationChainId,
@@ -186,6 +213,8 @@ contract TestContract is Test {
 
         laPosteMessage.nonce = 1;
 
+        deal(CRV, address(tokenFactory), 1e18);
+
         vm.prank(address(adapter));
         laPoste.receiveMessage(destinationChainId, abi.encode(laPosteMessage));
 
@@ -207,26 +236,6 @@ contract TestContract is Test {
 
         laPoste.setAdapter(newAdapter);
         assertEq(laPoste.adapter(), newAdapter);
-    }
-
-    function test_tokenFactory() public {
-        address mainToken = address(CRV);
-        address receiver = address(0x789);
-        uint256 amount = 1e18;
-        string memory name = "Test Token";
-        string memory symbol = "TST";
-        uint8 decimals = 18;
-
-        vm.prank(address(laPoste));
-        tokenFactory.mint(mainToken, receiver, amount, name, symbol, decimals);
-
-        address wrappedToken = tokenFactory.wrappedTokens(mainToken);
-        assertEq(IERC20(wrappedToken).balanceOf(receiver), amount);
-
-        vm.prank(address(laPoste));
-        tokenFactory.burn(mainToken, receiver, amount);
-
-        assertEq(IERC20(wrappedToken).balanceOf(receiver), 0);
     }
 
     function test_token() public {

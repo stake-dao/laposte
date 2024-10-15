@@ -15,7 +15,7 @@ interface IImmutableFactory {
 }
 
 contract Deploy is Script {
-    address public deployer = 0x000755Fbe4A24d7478bfcFC1E561AfCE82d1ff62;
+    address public deployer = 0x00E6C96f5D424b838E667A594b61341cB8627F86;
 
     address public constant FACTORY = 0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed;
 
