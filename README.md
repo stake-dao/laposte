@@ -35,7 +35,7 @@
 ##########################################################################################
 ```
 
-LaPoste is an utility contract designed to simplify cross-chain use, providing a single entry point for cross-chain communication and token transfers. It leverages CCIP to send and receive messages and tokens across chains.
+LaPoste is an utility contract designed to simplify cross-chain use, providing a single entry point for cross-chain communication and token transfers from mainnet to other chains. It leverages CCIP to send and receive messages and tokens across chains.
 
 ## Key Components
 

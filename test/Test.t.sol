@@ -163,8 +163,7 @@ contract TestContract is Test {
         address receiver = address(this);
         uint256 destinationChainId = Chains.ARBITRUM;
 
-        vm.prank(address(laPoste));
-        tokenFactory.mint(CRV, address(0xBEEF), 1e18, "Curve.fi CRV", "CRV", 18);
+        deal(CRV, address(tokenFactory), 1e18);
 
         IAdapter.Message memory laPosteMessage = IAdapter.Message({
             destinationChainId: destinationChainId,
@@ -196,10 +195,7 @@ contract TestContract is Test {
         vm.expectRevert(LaPoste.MessageAlreadyProcessed.selector);
         laPoste.receiveMessage(destinationChainId, abi.encode(laPosteMessage));
 
-        address wrappedToken = tokenFactory.wrappedTokens(CRV);
-        assertEq(IERC20(wrappedToken).balanceOf(address(0xBEEF)), 1e18);
-        assertEq(IERC20(wrappedToken).balanceOf(receiver), 1e18);
-        assertEq(Token(wrappedToken).owner(), address(tokenFactory));
+        assertEq(IERC20(CRV).balanceOf(receiver), 1e18);
     }
 
     function test_setAdapter() public {

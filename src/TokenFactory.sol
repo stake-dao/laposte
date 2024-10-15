@@ -20,9 +20,6 @@ contract TokenFactory is Ownable {
     /// @notice Whether the token is wrapped.
     mapping(address => bool) public isWrapped;
 
-    /// @notice Does the token exist on this chain.
-    mapping(address => bool) public isChainNative;
-
     /// @notice Mapping of native tokens to their wrapped versions.
     mapping(address => address) public wrappedTokens;
 
@@ -61,7 +58,7 @@ contract TokenFactory is Ownable {
         string memory symbol,
         uint8 decimals
     ) external onlyMinter {
-        if (isChainNative[nativeToken]) {
+        if (block.chainid == 1) {
             // The token exists on this chain, lock it
             IERC20(nativeToken).safeTransfer(to, amount);
         } else {
@@ -77,12 +74,9 @@ contract TokenFactory is Ownable {
     /// @param amount Amount of tokens to burn or unlock
     function burn(address nativeToken, address from, uint256 amount) external onlyMinter {
         address wrappedToken = wrappedTokens[nativeToken];
-        if (wrappedToken == address(0) && !isWrapped[nativeToken]) {
+        if (wrappedToken == address(0) && !isWrapped[nativeToken] && block.chainid == 1) {
             // The token exists on this chain, unlock it
             IERC20(nativeToken).safeTransferFrom(from, address(this), amount);
-
-            // Update original token.
-            if (!isChainNative[nativeToken]) isChainNative[nativeToken] = true;
         } else {
             // Token is wrapped, burn it
             if (wrappedToken == address(0)) revert WrappedTokenDoesNotExist();
@@ -123,7 +117,7 @@ contract TokenFactory is Ownable {
         view
         returns (string memory name, string memory symbol, uint8 decimals)
     {
-        token = isChainNative[token] ? token : wrappedTokens[token];
+        token = block.chainid == 1 ? token : wrappedTokens[token];
         return (IERC20Metadata(token).name(), IERC20Metadata(token).symbol(), IERC20Metadata(token).decimals());
     }
 
