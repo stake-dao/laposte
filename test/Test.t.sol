@@ -24,7 +24,7 @@ contract TestContract is Test {
     function setUp() public {
         vm.createSelectFork("mainnet");
 
-        tokenFactory = new TokenFactory(address(this));
+        tokenFactory = new TokenFactory(address(this), Chains.MAINNET);
         laPoste = new LaPoste(address(tokenFactory), address(this));
 
         tokenFactory.setMinter(address(laPoste));

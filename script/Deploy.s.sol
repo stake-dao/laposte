@@ -31,19 +31,24 @@ contract Deploy is Script {
     ];
 
     function run() public {
-        uint256 _random = 9876;
+        uint256 _random = 9377;
 
+        uint256 mainChainId;
         for (uint256 i = 0; i < chains.length; i++) {
             string memory chain = chains[i];
             address ccipRouter = ccipRouters[i];
             vm.createSelectFork(chain);
             vm.startBroadcast(deployer);
 
+            if (i == 0) {
+                mainChainId = block.chainid;
+            }
+
             bytes32 salt = keccak256(abi.encode(deployer, _random));
 
             /// 1. Deploy the GaugeManager.
             tokenFactory = IImmutableFactory(FACTORY).deployCreate3(
-                salt, abi.encodePacked(type(TokenFactory).creationCode, abi.encode(deployer))
+                salt, abi.encodePacked(type(TokenFactory).creationCode, abi.encode(deployer, mainChainId))
             );
 
             salt = keccak256(abi.encode(deployer, _random + 1));
