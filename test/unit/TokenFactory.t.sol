@@ -127,6 +127,48 @@ contract TokenFactoryTest is Test {
         assertEq(tokenFactory.nativeTokens(wrappedToken), nativeToken);
     }
 
-    function test_burnMainChain() public {}
-    function test_burnSideChain() public {}
+    function test_burnMainChain() public {
+        address nativeToken = address(fakeToken);
+        uint256 amount = 100e18;
+
+        address random = address(0x3);
+        vm.prank(random);
+        vm.expectRevert(TokenFactory.NotMinter.selector);
+        tokenFactory.burn(nativeToken, random, amount);
+
+        vm.expectRevert("ERC20: subtraction underflow");
+        tokenFactory.burn(nativeToken, owner, amount);
+
+        fakeToken.mint(owner, amount);
+        fakeToken.approve(address(tokenFactory), amount);
+
+        tokenFactory.burn(nativeToken, owner, amount);
+        assertEq(fakeToken.balanceOf(owner), 0);
+        assertEq(fakeToken.balanceOf(address(tokenFactory)), amount);
+
+        assertEq(tokenFactory.isWrapped(nativeToken), false);
+        assertEq(tokenFactory.wrappedTokens(nativeToken), address(0));
+    }
+
+    function test_burnSideChain() public {
+        vm.chainId(2);
+
+        address nativeToken = address(fakeToken);
+        uint256 amount = 100e18;
+
+        vm.expectRevert(TokenFactory.WrappedTokenDoesNotExist.selector);
+        tokenFactory.burn(nativeToken, owner, amount);
+
+        tokenFactory.mint(nativeToken, owner, amount, "Fake Token", "FAKE", 18);
+
+        address wrappedToken = tokenFactory.wrappedTokens(nativeToken);
+        assertEq(IERC20(wrappedToken).balanceOf(owner), amount);
+        assertEq(IERC20(wrappedToken).balanceOf(address(tokenFactory)), 0);
+        assertEq(IERC20(wrappedToken).totalSupply(), amount);
+
+        tokenFactory.burn(nativeToken, owner, amount);
+        assertEq(IERC20(wrappedToken).balanceOf(owner), 0);
+        assertEq(IERC20(wrappedToken).balanceOf(address(tokenFactory)), 0);
+        assertEq(IERC20(wrappedToken).totalSupply(), 0);
+    }
 }

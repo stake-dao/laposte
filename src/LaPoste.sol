@@ -111,7 +111,7 @@ contract LaPoste is Ownable2Step {
 
         /// 1. Check if there's a token attached and mint it to the receiver.
         if (message.token.tokenAddress != address(0)) {
-            ITokenFactory(tokenFactory).burn(message.token.tokenAddress, message.to, message.token.amount);
+            ITokenFactory(tokenFactory).burn(message.token.tokenAddress, msg.sender, message.token.amount);
 
             (message.tokenMetadata.name, message.tokenMetadata.symbol, message.tokenMetadata.decimals) =
                 ITokenFactory(tokenFactory).getTokenMetadata(message.token.tokenAddress);
