@@ -3,7 +3,6 @@ pragma solidity 0.8.19;
 
 import "@forge-std/Test.sol";
 import "@forge-std/mocks/MockERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {Token, TokenFactory} from "src/TokenFactory.sol";
 
@@ -22,7 +21,6 @@ contract FakeToken is MockERC20 {
 }
 
 contract TokenFactoryTest is Test {
-    using SafeCast for uint256;
 
     FakeToken public fakeToken;
     TokenFactory public tokenFactory;
