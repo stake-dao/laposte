@@ -17,7 +17,7 @@ install:
 	pnpm i
 
 test:
-	@forge test --match-contract AdapterTest
+	@forge test --match-contract TokenFactoryTest
 
 test-f-%:
 	@FOUNDRY_MATCH_TEST=$* make test

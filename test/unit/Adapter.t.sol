@@ -112,7 +112,6 @@ contract AdapterTest is Test {
         vm.expectRevert(Adapter.OnlyRouter.selector);
         adapter.ccipReceive(ccipMessage);
 
-
         ccipMessage.sender = abi.encode(random);
 
         vm.expectRevert(Adapter.InvalidSender.selector);

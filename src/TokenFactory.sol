@@ -42,8 +42,8 @@ contract TokenFactory is Ownable {
         _;
     }
 
-    constructor(address owner, uint256 _mainChainId) {
-        CHAIN_ID = _mainChainId;
+    constructor(address owner, uint256 mainChainId) {
+        CHAIN_ID = mainChainId;
         _transferOwnership(owner);
     }
 
