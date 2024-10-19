@@ -69,7 +69,7 @@ contract Deploy is Script {
             );
 
             /// 5. Set the adapter.
-            LaPoste(laPoste).setAdapter(address(adapter));
+            LaPoste(payable(laPoste)).setAdapter(address(adapter));
 
             vm.stopBroadcast();
         }

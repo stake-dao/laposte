@@ -21,7 +21,6 @@ contract FakeToken is MockERC20 {
 }
 
 contract TokenFactoryTest is Test {
-
     FakeToken public fakeToken;
     TokenFactory public tokenFactory;
 

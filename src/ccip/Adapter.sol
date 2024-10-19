@@ -72,9 +72,9 @@ contract Adapter is IAny2EVMMessageReceiver, IERC165 {
     function sendMessage(address to, uint256 executionGasLimit, uint256 destinationChainId, bytes calldata message)
         external
         payable
-        onlyLaPoste
         returns (bytes32)
     {
+        if (address(this) != laPoste) revert OnlyLaPoste();
         if (destinationChainId == block.chainid) revert SameChain();
 
         uint64 chainSelector = getBridgeChainId(destinationChainId).toUint64();
