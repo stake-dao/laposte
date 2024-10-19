@@ -18,7 +18,7 @@ contract TokenFactory is Ownable {
     address public minter;
 
     /// @notice The main chain ID where locked tokens are stored.
-    uint256 public immutable mainChainId;
+    uint256 public immutable CHAIN_ID;
 
     /// @notice Whether the token is wrapped.
     mapping(address => bool) public isWrapped;
@@ -43,7 +43,7 @@ contract TokenFactory is Ownable {
     }
 
     constructor(address owner, uint256 _mainChainId) {
-        mainChainId = _mainChainId;
+        CHAIN_ID = _mainChainId;
         _transferOwnership(owner);
     }
 
@@ -62,7 +62,7 @@ contract TokenFactory is Ownable {
         string memory symbol,
         uint8 decimals
     ) external onlyMinter {
-        if (block.chainid == mainChainId) {
+        if (block.chainid == CHAIN_ID) {
             // The token exists on this chain, lock it
             IERC20(nativeToken).safeTransfer(to, amount);
         } else {
@@ -77,7 +77,7 @@ contract TokenFactory is Ownable {
     /// @param from Address from which tokens are burned/unlocked
     /// @param amount Amount of tokens to burn or unlock
     function burn(address nativeToken, address from, uint256 amount) external onlyMinter {
-        if (block.chainid == mainChainId) {
+        if (block.chainid == CHAIN_ID) {
             // The token exists on this chain, unlock it
             IERC20(nativeToken).safeTransferFrom(from, address(this), amount);
         } else {
@@ -121,7 +121,7 @@ contract TokenFactory is Ownable {
         view
         returns (string memory name, string memory symbol, uint8 decimals)
     {
-        token = block.chainid == mainChainId ? token : wrappedTokens[token];
+        token = block.chainid == CHAIN_ID ? token : wrappedTokens[token];
         return (IERC20Metadata(token).name(), IERC20Metadata(token).symbol(), IERC20Metadata(token).decimals());
     }
 

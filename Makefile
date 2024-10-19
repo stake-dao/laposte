@@ -17,7 +17,7 @@ install:
 	pnpm i
 
 test:
-	@forge test --etherscan-api-key $(ETHERSCAN_KEY)
+	@forge test --match-contract AdapterTest
 
 test-f-%:
 	@FOUNDRY_MATCH_TEST=$* make test

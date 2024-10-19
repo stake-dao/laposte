@@ -72,7 +72,8 @@ contract Adapter is IAny2EVMMessageReceiver, IERC165 {
     function sendMessage(address to, uint256 executionGasLimit, uint256 destinationChainId, bytes calldata message)
         external
         payable
-        returns (address, uint256)
+        onlyLaPoste
+        returns (bytes32)
     {
         if (destinationChainId == block.chainid) revert SameChain();
 
@@ -97,8 +98,7 @@ contract Adapter is IAny2EVMMessageReceiver, IERC165 {
         if (fee == 0) revert InvalidMessage();
         if (msg.value < fee) revert NotEnoughFee();
 
-        bytes32 messageId = router.ccipSend{value: fee}(chainSelector, ccipMessage);
-        return (address(router), uint256(messageId));
+        return router.ccipSend{value: fee}(chainSelector, ccipMessage);
     }
 
     /// @notice Receives a message from another chain

@@ -11,7 +11,7 @@ import {LaPoste} from "src/LaPoste.sol";
 import {Token} from "src/Token.sol";
 import {TokenFactory} from "src/TokenFactory.sol";
 
-contract TestContract is Test {
+contract Integration is Test {
     using SafeCast for uint256;
 
     LaPoste public laPoste;

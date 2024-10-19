@@ -46,6 +46,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /// @title LaPoste
 /// @notice A contract for cross-chain message passing and token transfers
+/// @author StakeDAO - @warrenception
 /// @dev This contract uses a single adapter for governance-controlled bridge interactions
 contract LaPoste is Ownable2Step {
     using SafeERC20 for IERC20;
@@ -74,6 +75,19 @@ contract LaPoste is Ownable2Step {
     error MessageAlreadyProcessed();
     /// @notice Thrown when a message is sent to the same chain.
     error CannotSendToSelf();
+
+    event MessageSent(
+        uint256 indexed chainId, uint256 indexed nonce, address indexed sender, address to, IAdapter.Message message
+    );
+
+    event MessageReceived(
+        uint256 indexed chainId,
+        uint256 indexed nonce,
+        address indexed sender,
+        address to,
+        IAdapter.Message message,
+        bool success
+    );
 
     /// @notice Ensures that only the adapter can call the function.
     modifier onlyAdapter() {
@@ -122,6 +136,8 @@ contract LaPoste is Ownable2Step {
 
         // Increment the sent nonce for the specific chain after successful send
         sentNonces[message.destinationChainId] = message.nonce;
+
+        emit MessageSent(message.destinationChainId, message.nonce, msg.sender, message.to, message);
     }
 
     /// @notice Receives a message from another chain
@@ -146,12 +162,19 @@ contract LaPoste is Ownable2Step {
         }
 
         /// 2. Execute the message.
+        bool success;
         if (message.payload.length > 0) {
-            IMessageReceiver(message.to).receiveMessage(chainId, message.sender, message.payload);
+            (success,) = message.to.call(
+                abi.encodeWithSelector(
+                    IMessageReceiver.receiveMessage.selector, chainId, message.sender, message.payload
+                )
+            );
         }
 
         // Update the received nonce for the specific chain
         receivedNonces[chainId] = message.nonce;
+
+        emit MessageReceived(chainId, message.nonce, message.sender, message.to, message, success);
     }
 
     /// @notice Sets the adapter address
