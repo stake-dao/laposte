@@ -11,7 +11,7 @@ contract AdapterTest is Test {
 
     Adapter public adapter;
 
-    address public laPoste = address(0x1);
+    address public laPoste = address(this);
     address public router = address(this);
 
     function setUp() public {
@@ -19,7 +19,7 @@ contract AdapterTest is Test {
     }
 
     function test_setup() public view {
-        assertEq(adapter.laPoste(), address(0x1));
+        assertEq(adapter.laPoste(), laPoste);
 
         address _router = address(adapter.router());
         assertEq(_router, router);
@@ -37,6 +37,9 @@ contract AdapterTest is Test {
         /// Set the chain ID.
         vm.chainId(1);
 
+        address random = address(0x3);
+
+        vm.prank(random);
         vm.expectRevert(Adapter.OnlyLaPoste.selector);
         adapter.sendMessage(receiver, executionGasLimit, destinationChainId, message);
 
@@ -51,9 +54,7 @@ contract AdapterTest is Test {
 
         /// Mock the isChainSupported function to return false.
         vm.mockCall(
-            router,
-            abi.encodeWithSelector(IRouter.isChainSupported.selector, chainSelector),
-            abi.encode(bytes32(0))
+            router, abi.encodeWithSelector(IRouter.isChainSupported.selector, chainSelector), abi.encode(bytes32(0))
         );
 
         vm.prank(laPoste);
@@ -62,7 +63,8 @@ contract AdapterTest is Test {
 
         vm.clearMockedCalls();
 
-        Client.EVMExtraArgsV1 memory evmExtraArgs = Client.EVMExtraArgsV1({gasLimit: executionGasLimit + adapter.BASE_GAS_LIMIT()});
+        Client.EVMExtraArgsV1 memory evmExtraArgs =
+            Client.EVMExtraArgsV1({gasLimit: executionGasLimit + adapter.BASE_GAS_LIMIT()});
         bytes memory extraArgs = Client._argsToBytes(evmExtraArgs);
 
         Client.EVM2AnyMessage memory ccipMessage = Client.EVM2AnyMessage({
@@ -74,11 +76,7 @@ contract AdapterTest is Test {
         });
 
         /// Mock the getFee function to return 0.
-        vm.mockCall(
-            router,
-            abi.encodeWithSelector(IRouter.getFee.selector, chainSelector, ccipMessage),
-            abi.encode(0)
-        );
+        vm.mockCall(router, abi.encodeWithSelector(IRouter.getFee.selector, chainSelector, ccipMessage), abi.encode(0));
 
         vm.prank(laPoste);
         vm.expectRevert(Adapter.InvalidMessage.selector);
@@ -95,6 +93,38 @@ contract AdapterTest is Test {
         assertEq(messageId, bytes32("Success"));
     }
 
+    function test_ccipReceive() public {
+        /// Parameters
+        uint256 destinationChainId = 1;
+        bytes memory message = abi.encode("Hello World");
+
+        Client.Any2EVMMessage memory ccipMessage = Client.Any2EVMMessage({
+            messageId: bytes32("Success"),
+            sourceChainSelector: adapter.getBridgeChainId(destinationChainId).toUint64(),
+            sender: abi.encode(laPoste),
+            data: message,
+            destTokenAmounts: new Client.EVMTokenAmount[](0)
+        });
+
+        address random = address(0x3);
+
+        vm.prank(random);
+        vm.expectRevert(Adapter.OnlyRouter.selector);
+        adapter.ccipReceive(ccipMessage);
+
+
+        ccipMessage.sender = abi.encode(random);
+
+        vm.expectRevert(Adapter.InvalidSender.selector);
+        adapter.ccipReceive(ccipMessage);
+
+        ccipMessage.sender = abi.encode(laPoste);
+        vm.expectEmit(true, true, true, true);
+        emit MessageReceived(destinationChainId, message);
+
+        adapter.ccipReceive(ccipMessage);
+    }
+
     /// Mocked functions
     function isChainSupported(uint64) external pure returns (bool) {
         return true;
@@ -106,5 +136,11 @@ contract AdapterTest is Test {
 
     function ccipSend(uint64, Client.EVM2AnyMessage memory) external payable returns (bytes32) {
         return bytes32("Success");
+    }
+
+    event MessageReceived(uint256, bytes);
+
+    function receiveMessage(uint256 chainId, bytes memory message) external {
+        emit MessageReceived(chainId, message);
     }
 }

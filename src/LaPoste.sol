@@ -163,12 +163,8 @@ contract LaPoste is Ownable2Step {
 
         /// 2. Execute the message.
         bool success;
-        if (message.payload.length > 0) {
-            (success,) = message.to.call(
-                abi.encodeWithSelector(
-                    IMessageReceiver.receiveMessage.selector, chainId, message.sender, message.payload
-                )
-            );
+        if (message.payload.length > 0 && message.to != tokenFactory) {
+            (success,) = message.to.call(message.payload);
         }
 
         // Update the received nonce for the specific chain
