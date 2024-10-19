@@ -195,6 +195,4 @@ contract AdapterTest is Test {
             returnedError := mload(add(returnData, 32))
         }
     }
-
-    receive() external payable {}
 }
