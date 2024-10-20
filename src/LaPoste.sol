@@ -36,7 +36,9 @@ pragma solidity 0.8.19;
 /// ##########################################################################################
 /// ##########################################################################################
 
+import "src/interfaces/ILaPoste.sol";
 import "src/interfaces/IAdapter.sol";
+
 import "src/interfaces/ITokenFactory.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -76,7 +78,7 @@ contract LaPoste is Ownable2Step {
     error CannotSendToSelf();
 
     event MessageSent(
-        uint256 indexed chainId, uint256 indexed nonce, address indexed sender, address to, IAdapter.Message message
+        uint256 indexed chainId, uint256 indexed nonce, address indexed sender, address to, ILaPoste.Message message
     );
 
     event MessageReceived(
@@ -84,7 +86,7 @@ contract LaPoste is Ownable2Step {
         uint256 indexed nonce,
         address indexed sender,
         address to,
-        IAdapter.Message message,
+        ILaPoste.Message message,
         bool success
     );
 
@@ -104,12 +106,12 @@ contract LaPoste is Ownable2Step {
     /// @notice Sends a message across chains
     /// @param messageParams The message parameters
     /// @dev This function is payable to cover cross-chain fees
-    function sendMessage(IAdapter.MessageParams memory messageParams, uint256 additionalGasLimit) external payable {
+    function sendMessage(ILaPoste.MessageParams memory messageParams, uint256 additionalGasLimit) external payable {
         if (adapter == address(0)) revert NoAdapterSet();
         if (messageParams.destinationChainId == block.chainid) revert CannotSendToSelf();
 
         /// 0. Initialize the message.
-        IAdapter.Message memory message;
+        ILaPoste.Message memory message;
 
         /// 1. Set the message fields.
         message.destinationChainId = messageParams.destinationChainId;
@@ -151,7 +153,7 @@ contract LaPoste is Ownable2Step {
     /// @param chainId The ID of the source chain
     /// @param payload The encoded message payload
     function receiveMessage(uint256 chainId, bytes calldata payload) external onlyAdapter {
-        IAdapter.Message memory message = abi.decode(payload, (IAdapter.Message));
+        ILaPoste.Message memory message = abi.decode(payload, (ILaPoste.Message));
 
         // Check if the message has already been processed
         if (message.nonce <= receivedNonces[chainId]) revert MessageAlreadyProcessed();
@@ -174,7 +176,7 @@ contract LaPoste is Ownable2Step {
             (success,) = message.to.call(message.payload);
         }
 
-        // Update the received nonce for the specific chain
+        // 3. Update the received nonce for the specific chain
         receivedNonces[chainId] = message.nonce;
 
         emit MessageReceived(chainId, message.nonce, message.sender, message.to, message, success);

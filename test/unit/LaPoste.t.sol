@@ -11,7 +11,7 @@ import {AdapterFailMock} from "test/mocks/AdapterFailMock.sol";
 
 import {Client} from "src/ccip/Client.sol";
 import {TokenFactory} from "src/TokenFactory.sol";
-import {IAdapter, LaPoste} from "src/LaPoste.sol";
+import {IAdapter, ILaPoste, LaPoste} from "src/LaPoste.sol";
 
 contract LaPosteTest is Test {
     LaPoste public laPoste;
@@ -50,14 +50,14 @@ contract LaPosteTest is Test {
     }
 
     event MessageSent(
-        uint256 indexed chainId, uint256 indexed nonce, address indexed sender, address to, IAdapter.Message message
+        uint256 indexed chainId, uint256 indexed nonce, address indexed sender, address to, ILaPoste.Message message
     );
 
     function test_sendMessage() public {
-        IAdapter.MessageParams memory messageParams = IAdapter.MessageParams({
+        ILaPoste.MessageParams memory messageParams = ILaPoste.MessageParams({
             destinationChainId: 2,
             to: address(1),
-            token: IAdapter.Token({tokenAddress: address(fakeToken), amount: 50e18}),
+            token: ILaPoste.Token({tokenAddress: address(fakeToken), amount: 50e18}),
             payload: "Hello, world!"
         });
 
@@ -81,12 +81,12 @@ contract LaPosteTest is Test {
         uint256 nonce = laPoste.sentNonces(messageParams.destinationChainId);
         assertEq(nonce, 0);
 
-        IAdapter.Message memory message = IAdapter.Message({
+        ILaPoste.Message memory message = ILaPoste.Message({
             destinationChainId: messageParams.destinationChainId,
             to: messageParams.to,
             sender: address(owner),
             token: messageParams.token,
-            tokenMetadata: IAdapter.TokenMetadata({name: "Fake Token", symbol: "FAKE", decimals: 18}),
+            tokenMetadata: ILaPoste.TokenMetadata({name: "Fake Token", symbol: "FAKE", decimals: 18}),
             payload: messageParams.payload,
             nonce: 1
         });
@@ -105,9 +105,9 @@ contract LaPosteTest is Test {
         assertEq(fakeToken.balanceOf(address(tokenFactory)), 50e18);
 
         /// 4. Send message without Token main chain.
-        messageParams.token = IAdapter.Token({tokenAddress: address(0), amount: 0});
+        messageParams.token = ILaPoste.Token({tokenAddress: address(0), amount: 0});
         message.token = messageParams.token;
-        message.tokenMetadata = IAdapter.TokenMetadata({name: "", symbol: "", decimals: 0});
+        message.tokenMetadata = ILaPoste.TokenMetadata({name: "", symbol: "", decimals: 0});
         message.nonce = 2;
 
         vm.expectEmit(true, true, true, true);
@@ -124,7 +124,7 @@ contract LaPosteTest is Test {
         /// 5. Send message with token from not main chain.
         vm.chainId(2);
         messageParams.destinationChainId = 1;
-        messageParams.token = IAdapter.Token({tokenAddress: address(fakeToken), amount: 50e18});
+        messageParams.token = ILaPoste.Token({tokenAddress: address(fakeToken), amount: 50e18});
 
         vm.expectRevert(TokenFactory.WrappedTokenDoesNotExist.selector);
         laPoste.sendMessage(messageParams, additionalGasLimit);
@@ -140,17 +140,24 @@ contract LaPosteTest is Test {
     }
 
     event HelloWorld(uint256 param);
-    event MessageReceived(uint256 indexed chainId, uint256 indexed nonce, address indexed sender, address to, IAdapter.Message message, bool success);
+    event MessageReceived(
+        uint256 indexed chainId,
+        uint256 indexed nonce,
+        address indexed sender,
+        address to,
+        ILaPoste.Message message,
+        bool success
+    );
 
     function test_receiveMessage() public {
         uint256 sourceChainId = 1;
 
-        IAdapter.Message memory message = IAdapter.Message({
+        ILaPoste.Message memory message = ILaPoste.Message({
             destinationChainId: 2,
             to: address(1),
             sender: address(owner),
-            token: IAdapter.Token({tokenAddress: address(0), amount: 0}),
-            tokenMetadata: IAdapter.TokenMetadata({name: "", symbol: "", decimals: 0}),
+            token: ILaPoste.Token({tokenAddress: address(0), amount: 0}),
+            tokenMetadata: ILaPoste.TokenMetadata({name: "", symbol: "", decimals: 0}),
             payload: "",
             nonce: 1
         });
@@ -171,8 +178,8 @@ contract LaPosteTest is Test {
 
         /// 2. Message with token from main chain.
         /// It should create and mint a wrapped token.
-        message.token = IAdapter.Token({tokenAddress: address(fakeToken), amount: 50e18});
-        message.tokenMetadata = IAdapter.TokenMetadata({name: "Fake Token", symbol: "FAKE", decimals: 18});
+        message.token = ILaPoste.Token({tokenAddress: address(fakeToken), amount: 50e18});
+        message.tokenMetadata = ILaPoste.TokenMetadata({name: "Fake Token", symbol: "FAKE", decimals: 18});
         message.nonce = nonce + 1;
 
         adapter.ccipReceive(sourceChainId, message);
@@ -183,8 +190,20 @@ contract LaPosteTest is Test {
         address wrapped = tokenFactory.wrappedTokens(address(fakeToken));
         assertEq(IERC20(wrapped).balanceOf(address(1)), 50e18);
 
-        /// 3. Message with Token and Payload
-        message.token = IAdapter.Token({tokenAddress: address(fakeToken), amount: 50e18});
+
+        /// 3. Message with token from side chain.
+        /// It should try to transfer.
+        vm.chainId(sourceChainId);
+        message.nonce = nonce + 1;
+
+        vm.expectRevert("ERC20: subtraction underflow");
+        adapter.ccipReceive(sourceChainId, message);
+
+        vm.chainId(message.destinationChainId);
+
+
+        /// 4. Message with Token and Payload
+        message.token = ILaPoste.Token({tokenAddress: address(fakeToken), amount: 50e18});
         message.to = address(executeMock);
         message.payload = abi.encodeWithSelector(ExecuteMock.helloWorld.selector, address(owner), address(wrapped));
         message.nonce = nonce + 1;
@@ -197,8 +216,8 @@ contract LaPosteTest is Test {
         assertEq(IERC20(wrapped).balanceOf(address(1)), 50e18);
         assertEq(IERC20(wrapped).balanceOf(address(owner)), 50e18);
 
-        /// 3. Message with Payload only.
-        message.token = IAdapter.Token({tokenAddress: address(0), amount: 0});
+        /// 5. Message with Payload only.
+        message.token = ILaPoste.Token({tokenAddress: address(0), amount: 0});
         message.to = address(executeMock);
         message.payload = abi.encodeWithSelector(ExecuteMock.helloWorld2.selector, 86);
         message.nonce = nonce + 1;
@@ -210,5 +229,19 @@ contract LaPosteTest is Test {
         emit MessageReceived(sourceChainId, message.nonce, message.sender, message.to, message, true);
 
         adapter.ccipReceive(sourceChainId, message);
+
+        uint totalSupply = IERC20(wrapped).totalSupply();
+        assertEq(totalSupply, 100e18);
+
+        /// 6. Payload to TokenFactory
+        message.to = address(tokenFactory);
+        message.payload = abi.encodeWithSelector(TokenFactory.mint.selector, address(executeMock), 100e18, "Fake Token", "FAKE", 18);
+        message.nonce = nonce + 2;
+
+        adapter.ccipReceive(sourceChainId, message);
+
+        /// Supply should not change.
+        totalSupply = IERC20(wrapped).totalSupply();
+        assertEq(totalSupply, 100e18);
     }
 }

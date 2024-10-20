@@ -70,12 +70,12 @@
 // vm.deal(address(this), fee);
 // adapter.sendMessage{value: fee}(address(adapter), executionGasLimit, destinationChainId, message);
 
-// IAdapter.Message memory laPosteMessage = IAdapter.Message({
+// ILaPoste.Message memory laPosteMessage = ILaPoste.Message({
 // destinationChainId: destinationChainId,
 // to: receiver,
 // sender: address(laPoste),
-// token: IAdapter.Token({tokenAddress: address(0), amount: 0}),
-// tokenMetadata: IAdapter.TokenMetadata({name: "", symbol: "", decimals: 0}),
+// token: ILaPoste.Token({tokenAddress: address(0), amount: 0}),
+// tokenMetadata: ILaPoste.TokenMetadata({name: "", symbol: "", decimals: 0}),
 // payload: message,
 // nonce: 0
 // });
@@ -90,12 +90,12 @@
 // uint256 destinationChainId = Chains.ARBITRUM;
 // bytes memory message = abi.encode(1);
 
-// IAdapter.Message memory laPosteMessage = IAdapter.Message({
+// ILaPoste.Message memory laPosteMessage = ILaPoste.Message({
 // destinationChainId: destinationChainId,
 // to: receiver,
 // sender: address(laPoste),
-// token: IAdapter.Token({tokenAddress: CRV, amount: 1e18}),
-// tokenMetadata: IAdapter.TokenMetadata({name: "Curve.fi CRV", symbol: "CRV", decimals: 18}),
+// token: ILaPoste.Token({tokenAddress: CRV, amount: 1e18}),
+// tokenMetadata: ILaPoste.TokenMetadata({name: "Curve.fi CRV", symbol: "CRV", decimals: 18}),
 // payload: message,
 // nonce: 0
 // });
@@ -120,12 +120,12 @@
 // uint256 destinationChainId = Chains.ARBITRUM;
 // bytes memory message = abi.encode(1);
 
-// IAdapter.Message memory laPosteMessage = IAdapter.Message({
+// ILaPoste.Message memory laPosteMessage = ILaPoste.Message({
 // destinationChainId: destinationChainId,
 // to: receiver,
 // sender: address(laPoste),
-// token: IAdapter.Token({tokenAddress: CRV, amount: 1e18}),
-// tokenMetadata: IAdapter.TokenMetadata({name: "Curve.fi CRV", symbol: "CRV", decimals: 18}),
+// token: ILaPoste.Token({tokenAddress: CRV, amount: 1e18}),
+// tokenMetadata: ILaPoste.TokenMetadata({name: "Curve.fi CRV", symbol: "CRV", decimals: 18}),
 // payload: message,
 // nonce: 0
 // });
@@ -155,12 +155,12 @@
 // vm.prank(address(laPoste));
 // tokenFactory.burn(CRV, address(laPoste), 1e18);
 
-// IAdapter.Message memory laPosteMessage = IAdapter.Message({
+// ILaPoste.Message memory laPosteMessage = ILaPoste.Message({
 // destinationChainId: Chains.MAINNET,
 // to: receiver,
 // sender: address(laPoste),
-// token: IAdapter.Token({tokenAddress: CRV, amount: 1e18}),
-// tokenMetadata: IAdapter.TokenMetadata({name: "Curve.fi CRV", symbol: "CRV", decimals: 18}),
+// token: ILaPoste.Token({tokenAddress: CRV, amount: 1e18}),
+// tokenMetadata: ILaPoste.TokenMetadata({name: "Curve.fi CRV", symbol: "CRV", decimals: 18}),
 // payload: "",
 // nonce: 0
 // });
@@ -192,12 +192,12 @@
 // address receiver = address(this);
 // uint256 destinationChainId = Chains.MAINNET;
 
-// IAdapter.Message memory laPosteMessage = IAdapter.Message({
+// ILaPoste.Message memory laPosteMessage = ILaPoste.Message({
 // destinationChainId: destinationChainId,
 // to: receiver,
 // sender: address(laPoste),
-// token: IAdapter.Token({tokenAddress: CRV, amount: 1e18}),
-// tokenMetadata: IAdapter.TokenMetadata({name: "Curve.fi CRV", symbol: "CRV", decimals: 18}),
+// token: ILaPoste.Token({tokenAddress: CRV, amount: 1e18}),
+// tokenMetadata: ILaPoste.TokenMetadata({name: "Curve.fi CRV", symbol: "CRV", decimals: 18}),
 // payload: "",
 // nonce: 0
 // });

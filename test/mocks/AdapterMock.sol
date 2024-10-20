@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 import {IAdapter} from "src/interfaces/IAdapter.sol";
+import {ILaPoste} from "src/interfaces/ILaPoste.sol";
 
 contract AdapterMock {
     address public laPoste;
@@ -14,8 +15,8 @@ contract AdapterMock {
         return bytes32("Success");
     }
 
-    function ccipReceive(uint256 sourceChainId, IAdapter.Message memory message) external {
+    function ccipReceive(uint256 sourceChainId, ILaPoste.Message memory message) external {
         bytes memory payload = abi.encode(message);
-        IAdapter(laPoste).receiveMessage({chainId: sourceChainId, payload: payload});
+        ILaPoste(laPoste).receiveMessage({chainId: sourceChainId, payload: payload});
     }
 }

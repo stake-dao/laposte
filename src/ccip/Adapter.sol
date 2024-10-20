@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import "src/ccip/IRouter.sol";
 import "src/libraries/Chains.sol";
-import "src/interfaces/IAdapter.sol";
+import "src/interfaces/ILaPoste.sol";
 
 import "src/interfaces/IERC165.sol";
 import "src/interfaces/IAny2EVMMessageReceiver.sol";
@@ -107,7 +107,7 @@ contract Adapter is IAny2EVMMessageReceiver, IERC165 {
         address source = abi.decode(message.sender, (address));
         if (source == address(0) || source != laPoste) revert InvalidSender();
 
-        IAdapter(laPoste).receiveMessage({chainId: getChainId(message.sourceChainSelector), payload: message.data});
+        ILaPoste(laPoste).receiveMessage({chainId: getChainId(message.sourceChainSelector), payload: message.data});
     }
 
     /// @notice Converts a bridge chain ID to a standard chain ID
