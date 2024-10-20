@@ -38,7 +38,6 @@ pragma solidity 0.8.19;
 
 import "src/interfaces/IAdapter.sol";
 import "src/interfaces/ITokenFactory.sol";
-import "src/interfaces/IMessageReceiver.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable2Step.sol";

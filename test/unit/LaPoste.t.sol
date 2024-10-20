@@ -3,34 +3,24 @@ pragma solidity 0.8.19;
 
 import "@forge-std/Test.sol";
 import "@forge-std/mocks/MockERC20.sol";
+
 import {FakeToken} from "test/mocks/FakeToken.sol";
+import {AdapterMock} from "test/mocks/AdapterMock.sol";
+import {ExecuteMock} from "test/mocks/ExecuteMock.sol";
+import {AdapterFailMock} from "test/mocks/AdapterFailMock.sol";
 
 import {Client} from "src/ccip/Client.sol";
 import {TokenFactory} from "src/TokenFactory.sol";
 import {IAdapter, LaPoste} from "src/LaPoste.sol";
 
-
-contract AdapterMock {
-    address public laPoste;
-
-    constructor(address _laPoste) {
-        laPoste = _laPoste;
-    }
-
-    function sendMessage(address, uint256, uint256, bytes calldata) external payable returns (bytes32) {
-        return bytes32("Success");
-    }
-
-    function ccipReceive(uint256 chainId, bytes calldata message) external {
-        IAdapter(laPoste).receiveMessage({chainId: chainId, payload: message});
-    }
-}
-
 contract LaPosteTest is Test {
     LaPoste public laPoste;
+    TokenFactory public tokenFactory;
+
     FakeToken public fakeToken;
     AdapterMock public adapter;
-    TokenFactory public tokenFactory;
+    ExecuteMock public executeMock;
+    AdapterFailMock public adapterFailMock;
 
     address public owner = address(this);
 
@@ -38,6 +28,8 @@ contract LaPosteTest is Test {
         tokenFactory = new TokenFactory(owner, 1);
         laPoste = new LaPoste(address(tokenFactory), owner);
 
+        executeMock = new ExecuteMock();
+        adapterFailMock = new AdapterFailMock();
         adapter = new AdapterMock(address(laPoste));
         fakeToken = new FakeToken("Fake Token", "FAKE", 18);
 
@@ -99,7 +91,7 @@ contract LaPosteTest is Test {
             nonce: 1
         });
 
-        fakeToken.approve(address(tokenFactory), 50e18);
+        fakeToken.approve(address(tokenFactory), 100e18);
 
         vm.expectEmit(true, true, true, true);
         emit MessageSent(messageParams.destinationChainId, 1, message.sender, message.to, message);
@@ -138,5 +130,85 @@ contract LaPosteTest is Test {
         laPoste.sendMessage(messageParams, additionalGasLimit);
 
         vm.chainId(1);
+
+        /// 6. Adapter fails
+        messageParams.destinationChainId = 2;
+
+        laPoste.setAdapter(address(adapterFailMock));
+        vm.expectRevert(LaPoste.ExecutionFailed.selector);
+        laPoste.sendMessage(messageParams, additionalGasLimit);
+    }
+
+    event HelloWorld(uint256 param);
+    event MessageReceived(uint256 indexed chainId, uint256 indexed nonce, address indexed sender, address to, IAdapter.Message message, bool success);
+
+    function test_receiveMessage() public {
+        uint256 sourceChainId = 1;
+
+        IAdapter.Message memory message = IAdapter.Message({
+            destinationChainId: 2,
+            to: address(1),
+            sender: address(owner),
+            token: IAdapter.Token({tokenAddress: address(0), amount: 0}),
+            tokenMetadata: IAdapter.TokenMetadata({name: "", symbol: "", decimals: 0}),
+            payload: "",
+            nonce: 1
+        });
+
+        vm.chainId(message.destinationChainId);
+
+        uint256 nonce = laPoste.receivedNonces(sourceChainId);
+        assertEq(nonce, 0);
+
+        adapter.ccipReceive(sourceChainId, message);
+
+        nonce = laPoste.receivedNonces(sourceChainId);
+        assertEq(nonce, 1);
+
+        /// 1. Message already processed
+        vm.expectRevert(LaPoste.MessageAlreadyProcessed.selector);
+        adapter.ccipReceive(sourceChainId, message);
+
+        /// 2. Message with token from main chain.
+        /// It should create and mint a wrapped token.
+        message.token = IAdapter.Token({tokenAddress: address(fakeToken), amount: 50e18});
+        message.tokenMetadata = IAdapter.TokenMetadata({name: "Fake Token", symbol: "FAKE", decimals: 18});
+        message.nonce = nonce + 1;
+
+        adapter.ccipReceive(sourceChainId, message);
+
+        nonce = laPoste.receivedNonces(sourceChainId);
+        assertEq(nonce, 2);
+
+        address wrapped = tokenFactory.wrappedTokens(address(fakeToken));
+        assertEq(IERC20(wrapped).balanceOf(address(1)), 50e18);
+
+        /// 3. Message with Token and Payload
+        message.token = IAdapter.Token({tokenAddress: address(fakeToken), amount: 50e18});
+        message.to = address(executeMock);
+        message.payload = abi.encodeWithSelector(ExecuteMock.helloWorld.selector, address(owner), address(wrapped));
+        message.nonce = nonce + 1;
+
+        adapter.ccipReceive(sourceChainId, message);
+
+        nonce = laPoste.receivedNonces(sourceChainId);
+        assertEq(nonce, 3);
+
+        assertEq(IERC20(wrapped).balanceOf(address(1)), 50e18);
+        assertEq(IERC20(wrapped).balanceOf(address(owner)), 50e18);
+
+        /// 3. Message with Payload only.
+        message.token = IAdapter.Token({tokenAddress: address(0), amount: 0});
+        message.to = address(executeMock);
+        message.payload = abi.encodeWithSelector(ExecuteMock.helloWorld2.selector, 86);
+        message.nonce = nonce + 1;
+
+        vm.expectEmit(true, true, true, true);
+        emit HelloWorld(86);
+
+        vm.expectEmit(true, true, true, true);
+        emit MessageReceived(sourceChainId, message.nonce, message.sender, message.to, message, true);
+
+        adapter.ccipReceive(sourceChainId, message);
     }
 }
