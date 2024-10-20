@@ -17,7 +17,7 @@ install:
 	pnpm i
 
 test:
-	@forge test --match-test test_receiveMessage
+	@forge test
 
 test-f-%:
 	@FOUNDRY_MATCH_TEST=$* make test
