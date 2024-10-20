@@ -68,7 +68,6 @@ LaPoste is an utility contract designed to simplify cross-chain use, providing a
 - Send and receive cross-chain messages
 - Transfer tokens between different blockchain networks
 - Automatic creation of wrapped tokens on destination chains
-- Flexible adapter system for supporting multiple cross-chain protocols
 
 ## Known Limitations
 
