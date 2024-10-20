@@ -38,8 +38,8 @@ pragma solidity 0.8.19;
 
 import "src/interfaces/ILaPoste.sol";
 import "src/interfaces/IAdapter.sol";
-
 import "src/interfaces/ITokenFactory.sol";
+import "src/interfaces/IMessageReceiver.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
@@ -173,7 +173,11 @@ contract LaPoste is Ownable2Step {
         /// 2. Execute the message.
         bool success;
         if (message.payload.length > 0 && message.to != tokenFactory) {
-            (success,) = message.to.call(message.payload);
+            try IMessageReceiver(message.to).receiveMessage(chainId, message.sender, message.payload) {
+                success = true;
+            } catch {
+                success = false;
+            }
         }
 
         // 3. Update the received nonce for the specific chain

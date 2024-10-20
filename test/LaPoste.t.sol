@@ -190,7 +190,6 @@ contract LaPosteTest is Test {
         address wrapped = tokenFactory.wrappedTokens(address(fakeToken));
         assertEq(IERC20(wrapped).balanceOf(address(1)), 50e18);
 
-
         /// 3. Message with token from side chain.
         /// It should try to transfer.
         vm.chainId(sourceChainId);
@@ -201,11 +200,10 @@ contract LaPosteTest is Test {
 
         vm.chainId(message.destinationChainId);
 
-
         /// 4. Message with Token and Payload
         message.token = ILaPoste.Token({tokenAddress: address(fakeToken), amount: 50e18});
         message.to = address(executeMock);
-        message.payload = abi.encodeWithSelector(ExecuteMock.helloWorld.selector, address(owner), address(wrapped));
+        message.payload = abi.encode(address(owner), address(wrapped));
         message.nonce = nonce + 1;
 
         adapter.ccipReceive(sourceChainId, message);
@@ -219,23 +217,24 @@ contract LaPosteTest is Test {
         /// 5. Message with Payload only.
         message.token = ILaPoste.Token({tokenAddress: address(0), amount: 0});
         message.to = address(executeMock);
-        message.payload = abi.encodeWithSelector(ExecuteMock.helloWorld2.selector, 86);
+        message.payload = abi.encode(address(owner), address(wrapped));
         message.nonce = nonce + 1;
 
         vm.expectEmit(true, true, true, true);
-        emit HelloWorld(86);
+        emit HelloWorld(sourceChainId);
 
         vm.expectEmit(true, true, true, true);
         emit MessageReceived(sourceChainId, message.nonce, message.sender, message.to, message, true);
 
         adapter.ccipReceive(sourceChainId, message);
 
-        uint totalSupply = IERC20(wrapped).totalSupply();
+        uint256 totalSupply = IERC20(wrapped).totalSupply();
         assertEq(totalSupply, 100e18);
 
         /// 6. Payload to TokenFactory
         message.to = address(tokenFactory);
-        message.payload = abi.encodeWithSelector(TokenFactory.mint.selector, address(executeMock), 100e18, "Fake Token", "FAKE", 18);
+        message.payload =
+            abi.encodeWithSelector(TokenFactory.mint.selector, address(executeMock), 100e18, "Fake Token", "FAKE", 18);
         message.nonce = nonce + 2;
 
         adapter.ccipReceive(sourceChainId, message);
