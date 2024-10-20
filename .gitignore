@@ -2,7 +2,7 @@ cache/
 coverage/
 node_modules/
 out/
+script/
 
 broadcast/
 .env
-testcase.md
