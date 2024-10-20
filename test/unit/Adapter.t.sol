@@ -7,7 +7,11 @@ import "@forge-std/mocks/MockERC20.sol";
 import "src/ccip/Adapter.sol";
 
 contract DelegateCall {
-    function delegateCall(address target, bytes memory data) payable external returns (bool success, bytes memory returnData) {
+    function delegateCall(address target, bytes memory data)
+        external
+        payable
+        returns (bool success, bytes memory returnData)
+    {
         (success, returnData) = target.delegatecall(data);
     }
 
@@ -62,10 +66,9 @@ contract AdapterTest is Test {
             )
         );
         assertFalse(success);
-        
+
         bytes4 returnedError = getError(returnData);
         assertEq(returnedError, Adapter.SameChain.selector);
-
 
         /// Change the chain ID to 2.
         vm.chainId(2);
@@ -187,7 +190,6 @@ contract AdapterTest is Test {
     function ccipSend(uint64, Client.EVM2AnyMessage memory) external payable returns (bytes32) {
         return bytes32("Success");
     }
-
 
     function getError(bytes memory returnData) internal pure returns (bytes4 returnedError) {
         // Decode the error selector from the return data

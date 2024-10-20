@@ -103,25 +103,33 @@ contract LaPoste is Ownable2Step {
     }
 
     /// @notice Sends a message across chains
-    /// @param message The message to send
+    /// @param messageParams The message parameters
     /// @dev This function is payable to cover cross-chain fees
-    function sendMessage(IAdapter.Message memory message, uint256 additionalGasLimit) external payable {
+    function sendMessage(IAdapter.MessageParams memory messageParams, uint256 additionalGasLimit) external payable {
         if (adapter == address(0)) revert NoAdapterSet();
-        if (message.destinationChainId == block.chainid) revert CannotSendToSelf();
+        if (messageParams.destinationChainId == block.chainid) revert CannotSendToSelf();
 
-        /// 1. Check if there's a token attached and mint it to the receiver.
-        if (message.token.tokenAddress != address(0)) {
-            ITokenFactory(tokenFactory).burn(message.token.tokenAddress, msg.sender, message.token.amount);
+        /// 0. Initialize the message.
+        IAdapter.Message memory message;
 
-            (message.tokenMetadata.name, message.tokenMetadata.symbol, message.tokenMetadata.decimals) =
-                ITokenFactory(tokenFactory).getTokenMetadata(message.token.tokenAddress);
-        }
+        /// 1. Set the message fields.
+        message.destinationChainId = messageParams.destinationChainId;
+        message.to = messageParams.to;
+        message.sender = msg.sender;
+        message.payload = messageParams.payload;
 
-        /// 1. Set the nonce in the message
+        /// 2. Set the nonce in the message
         message.nonce = sentNonces[message.destinationChainId] + 1;
 
-        /// 2. Set the sender to the message sender
-        message.sender = msg.sender;
+        /// 3. Check if there's a token attached and mint it to the receiver.
+        if (messageParams.token.tokenAddress != address(0)) {
+            message.token = messageParams.token;
+
+            ITokenFactory(tokenFactory).burn(messageParams.token.tokenAddress, msg.sender, messageParams.token.amount);
+
+            (message.tokenMetadata.name, message.tokenMetadata.symbol, message.tokenMetadata.decimals) =
+                ITokenFactory(tokenFactory).getTokenMetadata(messageParams.token.tokenAddress);
+        }
 
         (bool success,) = adapter.delegatecall(
             abi.encodeWithSelector(

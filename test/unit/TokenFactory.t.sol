@@ -3,22 +3,9 @@ pragma solidity 0.8.19;
 
 import "@forge-std/Test.sol";
 import "@forge-std/mocks/MockERC20.sol";
+import {FakeToken} from "test/mocks/FakeToken.sol";
 
 import {Token, TokenFactory} from "src/TokenFactory.sol";
-
-contract FakeToken is MockERC20 {
-    constructor(string memory name, string memory symbol, uint8 decimals) {
-        initialize(name, symbol, decimals);
-    }
-
-    function mint(address to, uint256 amount) public {
-        _mint(to, amount);
-    }
-
-    function burn(address from, uint256 amount) public {
-        _burn(from, amount);
-    }
-}
 
 contract TokenFactoryTest is Test {
     FakeToken public fakeToken;

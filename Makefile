@@ -17,7 +17,7 @@ install:
 	pnpm i
 
 test:
-	@forge test --match-contract AdapterTest # --match-test test_sendMessage
+	@forge test --match-contract LaPosteTest --match-test test_sendMessage
 
 test-f-%:
 	@FOUNDRY_MATCH_TEST=$* make test

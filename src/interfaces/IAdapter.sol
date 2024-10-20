@@ -13,6 +13,13 @@ interface IAdapter {
         uint8 decimals;
     }
 
+    struct MessageParams {
+        uint256 destinationChainId;
+        address to;
+        Token token;
+        bytes payload;
+    }
+
     struct Message {
         uint256 destinationChainId;
         address to;
