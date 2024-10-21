@@ -172,7 +172,7 @@ contract LaPoste is Ownable2Step {
 
         /// 2. Execute the message.
         bool success;
-        if (message.payload.length > 0 && message.to != tokenFactory) {
+        if (message.payload.length > 0) {
             try IMessageReceiver(message.to).receiveMessage(chainId, message.sender, message.payload) {
                 success = true;
             } catch {
