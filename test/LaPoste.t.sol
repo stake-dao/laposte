@@ -243,4 +243,6 @@ contract LaPosteTest is Test {
         totalSupply = IERC20(wrapped).totalSupply();
         assertEq(totalSupply, 100e18);
     }
+
+    receive() external payable {}
 }
