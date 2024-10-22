@@ -41,6 +41,7 @@ import "src/interfaces/IAdapter.sol";
 import "src/interfaces/ITokenFactory.sol";
 import "src/interfaces/IMessageReceiver.sol";
 
+import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -149,13 +150,13 @@ contract LaPoste is Ownable2Step {
         // Increment the sent nonce for the specific chain after successful send
         sentNonces[message.destinationChainId] = message.nonce;
 
-        // Refund the sender
+        /// 4. Set the refund address if not provided.
         if (refundAddress == address(0)) {
             refundAddress = msg.sender;
         }
 
-        /// 4. Refund the sender.
-        refundAddress.call{value: address(this).balance}("");
+        /// 5. Refund the sender.
+        Address.sendValue(payable(refundAddress), address(this).balance);
 
         emit MessageSent(message.destinationChainId, message.nonce, msg.sender, message.to, message);
     }
