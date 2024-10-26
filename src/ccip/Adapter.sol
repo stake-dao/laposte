@@ -82,7 +82,8 @@ contract Adapter is IAny2EVMMessageReceiver, IERC165 {
 
         uint256 totalGasLimit = executionGasLimit + BASE_GAS_LIMIT;
 
-        Client.EVMExtraArgsV1 memory evmExtraArgs = Client.EVMExtraArgsV1({gasLimit: totalGasLimit});
+        Client.EVMExtraArgsV2 memory evmExtraArgs =
+            Client.EVMExtraArgsV2({gasLimit: totalGasLimit, allowOutOfOrderExecution: false});
         bytes memory extraArgs = Client._argsToBytes(evmExtraArgs);
 
         Client.EVM2AnyMessage memory ccipMessage = Client.EVM2AnyMessage({

@@ -26,17 +26,6 @@ library Client {
         bytes extraArgs; // Populate this with _argsToBytes(EVMExtraArgsV2)
     }
 
-    // bytes4(keccak256("CCIP EVMExtraArgsV1"));
-    bytes4 public constant EVM_EXTRA_ARGS_V1_TAG = 0x97a657c9;
-
-    struct EVMExtraArgsV1 {
-        uint256 gasLimit;
-    }
-
-    function _argsToBytes(EVMExtraArgsV1 memory extraArgs) internal pure returns (bytes memory bts) {
-        return abi.encodeWithSelector(EVM_EXTRA_ARGS_V1_TAG, extraArgs);
-    }
-
     // bytes4(keccak256("CCIP EVMExtraArgsV2"));
     bytes4 public constant EVM_EXTRA_ARGS_V2_TAG = 0x181dcf10;
 
