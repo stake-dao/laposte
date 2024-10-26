@@ -164,13 +164,13 @@ contract LaPosteTest is Test {
 
         vm.chainId(message.destinationChainId);
 
-        uint256 nonce = laPoste.receivedNonces(sourceChainId);
-        assertEq(nonce, 0);
+        bool received = laPoste.receivedNonces(sourceChainId, message.nonce);
+        assertFalse(received);
 
         adapter.ccipReceive(sourceChainId, message);
 
-        nonce = laPoste.receivedNonces(sourceChainId);
-        assertEq(nonce, 1);
+        received = laPoste.receivedNonces(sourceChainId, message.nonce);
+        assertTrue(received);
 
         /// 1. Message already processed
         vm.expectRevert(LaPoste.MessageAlreadyProcessed.selector);
@@ -180,12 +180,12 @@ contract LaPosteTest is Test {
         /// It should create and mint a wrapped token.
         message.token = ILaPoste.Token({tokenAddress: address(fakeToken), amount: 50e18});
         message.tokenMetadata = ILaPoste.TokenMetadata({name: "Fake Token", symbol: "FAKE", decimals: 18});
-        message.nonce = nonce + 1;
+        message.nonce = 2;
 
         adapter.ccipReceive(sourceChainId, message);
 
-        nonce = laPoste.receivedNonces(sourceChainId);
-        assertEq(nonce, 2);
+        received = laPoste.receivedNonces(sourceChainId, message.nonce);
+        assertTrue(received);
 
         address wrapped = tokenFactory.wrappedTokens(address(fakeToken));
         assertEq(IERC20(wrapped).balanceOf(address(1)), 50e18);
@@ -193,7 +193,7 @@ contract LaPosteTest is Test {
         /// 3. Message with token from side chain.
         /// It should try to transfer.
         vm.chainId(sourceChainId);
-        message.nonce = nonce + 1;
+        message.nonce = 3;
 
         vm.expectRevert("ERC20: subtraction underflow");
         adapter.ccipReceive(sourceChainId, message);
@@ -204,12 +204,12 @@ contract LaPosteTest is Test {
         message.token = ILaPoste.Token({tokenAddress: address(fakeToken), amount: 50e18});
         message.to = address(executeMock);
         message.payload = abi.encode(address(owner), address(wrapped));
-        message.nonce = nonce + 1;
+        message.nonce = 4;
 
         adapter.ccipReceive(sourceChainId, message);
 
-        nonce = laPoste.receivedNonces(sourceChainId);
-        assertEq(nonce, 3);
+        received = laPoste.receivedNonces(sourceChainId, message.nonce);
+        assertTrue(received);
 
         assertEq(IERC20(wrapped).balanceOf(address(1)), 50e18);
         assertEq(IERC20(wrapped).balanceOf(address(owner)), 50e18);
@@ -218,7 +218,7 @@ contract LaPosteTest is Test {
         message.token = ILaPoste.Token({tokenAddress: address(0), amount: 0});
         message.to = address(executeMock);
         message.payload = abi.encode(address(owner), address(wrapped));
-        message.nonce = nonce + 1;
+        message.nonce = 5;
 
         vm.expectEmit(true, true, true, true);
         emit HelloWorld(sourceChainId);
@@ -235,7 +235,7 @@ contract LaPosteTest is Test {
         message.to = address(tokenFactory);
         message.payload =
             abi.encodeWithSelector(TokenFactory.mint.selector, address(executeMock), 100e18, "Fake Token", "FAKE", 18);
-        message.nonce = nonce + 2;
+        message.nonce = 6;
 
         adapter.ccipReceive(sourceChainId, message);
 

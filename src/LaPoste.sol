@@ -62,7 +62,7 @@ contract LaPoste is Ownable2Step {
     mapping(uint256 => uint256) public sentNonces;
 
     /// @notice Nonce for received messages, per chain
-    mapping(uint256 => uint256) public receivedNonces;
+    mapping(uint256 => mapping(uint256 => bool)) public receivedNonces;
 
     /// @notice Thrown when the sender is not the adapter.
     error OnlyAdapter();
@@ -156,7 +156,7 @@ contract LaPoste is Ownable2Step {
         ILaPoste.Message memory message = abi.decode(payload, (ILaPoste.Message));
 
         // Check if the message has already been processed
-        if (message.nonce <= receivedNonces[chainId]) revert MessageAlreadyProcessed();
+        if (receivedNonces[chainId][message.nonce]) revert MessageAlreadyProcessed();
 
         /// 1. Check if there's a token attached and release or mint it to the receiver.
         if (message.token.tokenAddress != address(0) && message.token.amount > 0) {
@@ -181,7 +181,7 @@ contract LaPoste is Ownable2Step {
         }
 
         // 3. Update the received nonce for the specific chain
-        receivedNonces[chainId] = message.nonce;
+        receivedNonces[chainId][message.nonce] = true;
 
         emit MessageReceived(chainId, message.nonce, message.sender, message.to, message, success);
     }
