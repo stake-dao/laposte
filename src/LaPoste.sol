@@ -183,11 +183,10 @@ contract LaPoste is Ownable2Step {
         }
 
         /// 2. Execute the message.
-        bool success;
+        bool success = true;
         if (message.payload.length > 0) {
-            try IMessageReceiver(message.to).receiveMessage(chainId, message.sender, message.payload) {
-                success = true;
-            } catch {
+            try IMessageReceiver(message.to).receiveMessage(chainId, message.sender, message.payload) {}
+            catch {
                 success = false;
             }
         }
