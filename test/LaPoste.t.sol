@@ -66,14 +66,14 @@ contract LaPosteTest is Test {
         /// 1. Adapter not set
         laPoste.setAdapter(address(0));
         vm.expectRevert(LaPoste.NoAdapterSet.selector);
-        laPoste.sendMessage(messageParams, additionalGasLimit);
+        laPoste.sendMessage(messageParams, additionalGasLimit, address(0));
 
         laPoste.setAdapter(address(adapter));
 
         /// 2. Send to same chain
         vm.chainId(messageParams.destinationChainId);
         vm.expectRevert(LaPoste.CannotSendToSelf.selector);
-        laPoste.sendMessage(messageParams, additionalGasLimit);
+        laPoste.sendMessage(messageParams, additionalGasLimit, address(0));
 
         vm.chainId(1);
 
@@ -96,7 +96,7 @@ contract LaPosteTest is Test {
         vm.expectEmit(true, true, true, true);
         emit MessageSent(messageParams.destinationChainId, 1, message.sender, message.to, message);
 
-        laPoste.sendMessage(messageParams, additionalGasLimit);
+        laPoste.sendMessage(messageParams, additionalGasLimit, address(0));
 
         nonce = laPoste.sentNonces(messageParams.destinationChainId);
         assertEq(nonce, 1);
@@ -113,7 +113,7 @@ contract LaPosteTest is Test {
         vm.expectEmit(true, true, true, true);
         emit MessageSent(messageParams.destinationChainId, 2, message.sender, message.to, message);
 
-        laPoste.sendMessage(messageParams, additionalGasLimit);
+        laPoste.sendMessage(messageParams, additionalGasLimit, address(0));
 
         nonce = laPoste.sentNonces(messageParams.destinationChainId);
         assertEq(nonce, 2);
@@ -127,7 +127,7 @@ contract LaPosteTest is Test {
         messageParams.token = ILaPoste.Token({tokenAddress: address(fakeToken), amount: 50e18});
 
         vm.expectRevert(TokenFactory.WrappedTokenDoesNotExist.selector);
-        laPoste.sendMessage(messageParams, additionalGasLimit);
+        laPoste.sendMessage(messageParams, additionalGasLimit, address(0));
 
         vm.chainId(1);
 
@@ -136,7 +136,7 @@ contract LaPosteTest is Test {
 
         laPoste.setAdapter(address(adapterFailMock));
         vm.expectRevert(LaPoste.ExecutionFailed.selector);
-        laPoste.sendMessage(messageParams, additionalGasLimit);
+        laPoste.sendMessage(messageParams, additionalGasLimit, address(0));
     }
 
     event HelloWorld(uint256 param);
@@ -243,4 +243,6 @@ contract LaPosteTest is Test {
         totalSupply = IERC20(wrapped).totalSupply();
         assertEq(totalSupply, 100e18);
     }
+
+    receive() external payable {}
 }
