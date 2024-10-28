@@ -152,11 +152,11 @@ contract LaPoste is Ownable2Step {
             refundAddress = msg.sender;
         }
 
+        // 4. Increment the sent nonce for the specific chain after successful send
+        sentNonces[message.destinationChainId] = message.nonce;
+
         /// 5. Refund the sender.
         Address.sendValue(payable(refundAddress), address(this).balance);
-
-        // Increment the sent nonce for the specific chain after successful send
-        sentNonces[message.destinationChainId] = message.nonce;
 
         emit MessageSent(message.destinationChainId, message.nonce, msg.sender, message.to, message);
     }
