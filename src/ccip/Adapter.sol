@@ -121,11 +121,9 @@ contract Adapter is IAny2EVMMessageReceiver, IERC165 {
         else if (bridgeChainId == CCIPSelectors.OPTIMISM) return Chains.OPTIMISM;
         else if (bridgeChainId == CCIPSelectors.BNB) return Chains.BNB;
         else if (bridgeChainId == CCIPSelectors.BASE) return Chains.BASE;
-        else if (bridgeChainId == CCIPSelectors.ZKSYNC) return Chains.ZKSYNC;
         else if (bridgeChainId == CCIPSelectors.GNOSIS) return Chains.GNOSIS;
         else if (bridgeChainId == CCIPSelectors.LINEA) return Chains.LINEA;
         else if (bridgeChainId == CCIPSelectors.SCROLL) return Chains.SCROLL;
-        else if (bridgeChainId == CCIPSelectors.CELO) return Chains.CELO;
         else if (bridgeChainId == CCIPSelectors.BLAST) return Chains.BLAST;
 
         return bridgeChainId;
@@ -142,11 +140,9 @@ contract Adapter is IAny2EVMMessageReceiver, IERC165 {
         else if (chainId == Chains.OPTIMISM) return CCIPSelectors.OPTIMISM;
         else if (chainId == Chains.BNB) return CCIPSelectors.BNB;
         else if (chainId == Chains.BASE) return CCIPSelectors.BASE;
-        else if (chainId == Chains.ZKSYNC) return CCIPSelectors.ZKSYNC;
         else if (chainId == Chains.GNOSIS) return CCIPSelectors.GNOSIS;
         else if (chainId == Chains.LINEA) return CCIPSelectors.LINEA;
         else if (chainId == Chains.SCROLL) return CCIPSelectors.SCROLL;
-        else if (chainId == Chains.CELO) return CCIPSelectors.CELO;
         else if (chainId == Chains.BLAST) return CCIPSelectors.BLAST;
 
         return chainId;

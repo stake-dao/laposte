@@ -41,6 +41,7 @@ import "src/interfaces/IAdapter.sol";
 import "src/interfaces/ITokenFactory.sol";
 import "src/interfaces/IMessageReceiver.sol";
 
+import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -62,7 +63,7 @@ contract LaPoste is Ownable2Step {
     mapping(uint256 => uint256) public sentNonces;
 
     /// @notice Nonce for received messages, per chain
-    mapping(uint256 => uint256) public receivedNonces;
+    mapping(uint256 => mapping(uint256 => bool)) public receivedNonces;
 
     /// @notice Thrown when the sender is not the adapter.
     error OnlyAdapter();
@@ -106,7 +107,10 @@ contract LaPoste is Ownable2Step {
     /// @notice Sends a message across chains
     /// @param messageParams The message parameters
     /// @dev This function is payable to cover cross-chain fees
-    function sendMessage(ILaPoste.MessageParams memory messageParams, uint256 additionalGasLimit) external payable {
+    function sendMessage(ILaPoste.MessageParams memory messageParams, uint256 additionalGasLimit, address refundAddress)
+        external
+        payable
+    {
         if (adapter == address(0)) revert NoAdapterSet();
         if (messageParams.destinationChainId == block.chainid) revert CannotSendToSelf();
 
@@ -143,8 +147,16 @@ contract LaPoste is Ownable2Step {
         );
         if (!success) revert ExecutionFailed();
 
-        // Increment the sent nonce for the specific chain after successful send
+        /// 4. Set the refund address if not provided.
+        if (refundAddress == address(0)) {
+            refundAddress = msg.sender;
+        }
+
+        // 4. Increment the sent nonce for the specific chain after successful send
         sentNonces[message.destinationChainId] = message.nonce;
+
+        /// 5. Refund the sender.
+        Address.sendValue(payable(refundAddress), address(this).balance);
 
         emit MessageSent(message.destinationChainId, message.nonce, msg.sender, message.to, message);
     }
@@ -156,7 +168,7 @@ contract LaPoste is Ownable2Step {
         ILaPoste.Message memory message = abi.decode(payload, (ILaPoste.Message));
 
         // Check if the message has already been processed
-        if (message.nonce <= receivedNonces[chainId]) revert MessageAlreadyProcessed();
+        if (receivedNonces[chainId][message.nonce]) revert MessageAlreadyProcessed();
 
         /// 1. Check if there's a token attached and release or mint it to the receiver.
         if (message.token.tokenAddress != address(0) && message.token.amount > 0) {
@@ -171,17 +183,16 @@ contract LaPoste is Ownable2Step {
         }
 
         /// 2. Execute the message.
-        bool success;
+        bool success = true;
         if (message.payload.length > 0) {
-            try IMessageReceiver(message.to).receiveMessage(chainId, message.sender, message.payload) {
-                success = true;
-            } catch {
+            try IMessageReceiver(message.to).receiveMessage(chainId, message.sender, message.payload) {}
+            catch {
                 success = false;
             }
         }
 
         // 3. Update the received nonce for the specific chain
-        receivedNonces[chainId] = message.nonce;
+        receivedNonces[chainId][message.nonce] = true;
 
         emit MessageReceived(chainId, message.nonce, message.sender, message.to, message, success);
     }
