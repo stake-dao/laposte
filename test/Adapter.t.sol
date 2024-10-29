@@ -93,10 +93,8 @@ contract AdapterTest is Test {
 
         vm.clearMockedCalls();
 
-        Client.EVMExtraArgsV2 memory evmExtraArgs = Client.EVMExtraArgsV2({
-            gasLimit: executionGasLimit + adapter.BASE_GAS_LIMIT(),
-            allowOutOfOrderExecution: false
-        });
+        Client.EVMExtraArgsV1 memory evmExtraArgs =
+            Client.EVMExtraArgsV1({gasLimit: executionGasLimit + adapter.BASE_GAS_LIMIT()});
         bytes memory extraArgs = Client._argsToBytes(evmExtraArgs);
 
         Client.EVM2AnyMessage memory ccipMessage = Client.EVM2AnyMessage({
