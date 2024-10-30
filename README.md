@@ -39,9 +39,9 @@ LaPoste is a utility contract designed to simplify cross-chain communication and
 
 | Contract | Address | Networks |
 |----------|---------|----------|
-| TokenFactory | [`0x345000000000fd99009b2bf0fb373ca70f4c0047`](https://etherscan.io/address/0x345000000000fd99009b2bf0fb373ca70f4c0047) | Ethereum, Polygon, Arbitrum, Optimism, Base |
+| TokenFactory | [`0x00000000a551c9435e002a5d75dc2ee3c0644400`](https://etherscan.io/address/0x00000000a551c9435e002a5d75dc2ee3c0644400) | Ethereum, Polygon, Arbitrum, Optimism, Base |
 | LaPoste | [`0x345000000000fd99009b2bf0fb373ca70f4c0047`](https://etherscan.io/address/0x345000000000fd99009b2bf0fb373ca70f4c0047) | Ethereum, Polygon, Arbitrum, Optimism, Base |
-| Adapter | [`0x345000000000fd99009b2bf0fb373ca70f4c0047`](https://etherscan.io/address/0x345000000000fd99009b2bf0fb373ca70f4c0047) | Ethereum, Polygon, Arbitrum, Optimism, Base |
+| Adapter | [`0x4200740090f72e89302f001da5860000007d7ea7`](https://etherscan.io/address/0x4200740090f72e89302f001da5860000007d7ea7) | Ethereum, Polygon, Arbitrum, Optimism, Base |
 
 ## Known Limitations
 
