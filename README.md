@@ -35,6 +35,14 @@ LaPoste is a utility contract designed to simplify cross-chain communication and
 - Automatic creation of wrapped tokens on destination chains
 - Support for multiple EVM-compatible chains, including Mainnet, Avalanche, Polygon, Arbitrum, Optimism, BNB Chain, Base, zkSync, Gnosis, Linea, Scroll, Celo, and Blast
 
+## Deployment Addresses
+
+| Contract | Address | Networks |
+|----------|---------|----------|
+| TokenFactory | [`0x345000000000fd99009b2bf0fb373ca70f4c0047`](https://etherscan.io/address/0x345000000000fd99009b2bf0fb373ca70f4c0047) | Ethereum, Polygon, Arbitrum, Optimism, Base |
+| LaPoste | [`0x345000000000fd99009b2bf0fb373ca70f4c0047`](https://etherscan.io/address/0x345000000000fd99009b2bf0fb373ca70f4c0047) | Ethereum, Polygon, Arbitrum, Optimism, Base |
+| Adapter | [`0x345000000000fd99009b2bf0fb373ca70f4c0047`](https://etherscan.io/address/0x345000000000fd99009b2bf0fb373ca70f4c0047) | Ethereum, Polygon, Arbitrum, Optimism, Base |
+
 ## Known Limitations
 
 - It relies on having all contracts deployed at the same address on all supported chains.

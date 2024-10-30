@@ -7,7 +7,6 @@ default:
 	@forge fmt && forge build
 
 clean:
-	rm report.txt
 	@forge clean && make default
 
 # Always keep Forge up to date
@@ -27,12 +26,15 @@ test-c-%:
 
 simulate:
 	@network=$$(echo "$*" | cut -d'-' -f1); \
-	script_path="script/Deploy.s.sol:Deploy"; \
+	script_path="script/initial/Deploy.s.sol:Deploy"; \
 	forge script $$script_path;
 
 deploy:
 	@network=$$(echo "$*" | cut -d'-' -f1); \
-	script_path="script/Deploy.s.sol:Deploy"; \
+	script_path="script/initial/Deploy.s.sol:Deploy"; \
 	forge script $$script_path --broadcast --slow --private-key $$PRIVATE_KEY; \
 
 .PHONY: test coverage
+
+
+# ./target/release/createxcrunch create3 --caller 0x606A503e5178908F10597894B35b2Be8685EAB90  --leading 6
