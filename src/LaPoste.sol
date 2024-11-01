@@ -92,13 +92,20 @@ contract LaPoste is Ownable2Step {
         message.nonce = sentNonces[message.destinationChainId] + 1;
 
         /// 3. Check if there's a token attached and mint it to the receiver.
-        if (messageParams.token.tokenAddress != address(0)) {
-            message.token = messageParams.token;
+        if (messageParams.tokens.length > 0) {
+            message.tokens = messageParams.tokens;
+            message.tokenMetadata = new ILaPoste.TokenMetadata[](messageParams.tokens.length);
 
-            ITokenFactory(tokenFactory).burn(messageParams.token.tokenAddress, msg.sender, messageParams.token.amount);
+            for (uint256 i = 0; i < messageParams.tokens.length; i++) {
+                if (messageParams.tokens[i].tokenAddress != address(0) && messageParams.tokens[i].amount > 0) {
+                    ITokenFactory(tokenFactory).burn(
+                        messageParams.tokens[i].tokenAddress, msg.sender, messageParams.tokens[i].amount
+                    );
 
-            (message.tokenMetadata.name, message.tokenMetadata.symbol, message.tokenMetadata.decimals) =
-                ITokenFactory(tokenFactory).getTokenMetadata(messageParams.token.tokenAddress);
+                    (message.tokenMetadata[i].name, message.tokenMetadata[i].symbol, message.tokenMetadata[i].decimals)
+                    = ITokenFactory(tokenFactory).getTokenMetadata(messageParams.tokens[i].tokenAddress);
+                }
+            }
         }
 
         (bool success,) = adapter.delegatecall(
@@ -136,15 +143,19 @@ contract LaPoste is Ownable2Step {
         if (receivedNonces[chainId][message.nonce]) revert MessageAlreadyProcessed();
 
         /// 1. Check if there's a token attached and release or mint it to the receiver.
-        if (message.token.tokenAddress != address(0) && message.token.amount > 0) {
-            ITokenFactory(tokenFactory).mint(
-                message.token.tokenAddress,
-                message.to,
-                message.token.amount,
-                message.tokenMetadata.name,
-                message.tokenMetadata.symbol,
-                message.tokenMetadata.decimals
-            );
+        if (message.tokens.length > 0) {
+            for (uint256 i = 0; i < message.tokens.length; i++) {
+                if (message.tokens[i].tokenAddress != address(0) && message.tokens[i].amount > 0) {
+                    ITokenFactory(tokenFactory).mint(
+                        message.tokens[i].tokenAddress,
+                        message.to,
+                        message.tokens[i].amount,
+                        message.tokenMetadata[i].name,
+                        message.tokenMetadata[i].symbol,
+                        message.tokenMetadata[i].decimals
+                    );
+                }
+            }
         }
 
         /// 2. Execute the message.

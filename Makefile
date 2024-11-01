@@ -35,6 +35,3 @@ deploy:
 	forge script $$script_path --broadcast --slow --private-key $$PRIVATE_KEY; \
 
 .PHONY: test coverage
-
-
-# ./target/release/createxcrunch create3 --caller 0x606A503e5178908F10597894B35b2Be8685EAB90  --leading 6
