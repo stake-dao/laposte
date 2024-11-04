@@ -16,7 +16,7 @@ interface ILaPoste {
     struct MessageParams {
         uint256 destinationChainId;
         address to;
-        Token token;
+        Token[] tokens;
         bytes payload;
     }
 
@@ -24,8 +24,8 @@ interface ILaPoste {
         uint256 destinationChainId;
         address to;
         address sender;
-        Token token;
-        TokenMetadata tokenMetadata;
+        Token[] tokens;
+        TokenMetadata[] tokenMetadata;
         bytes payload;
         uint256 nonce;
     }

@@ -3,8 +3,8 @@ pragma solidity 0.8.19;
 
 import "@forge-std/Test.sol";
 import "@forge-std/mocks/MockERC20.sol";
-import {FakeToken} from "test/mocks/FakeToken.sol";
 
+import {FakeToken} from "test/mocks/FakeToken.sol";
 import {Token, TokenFactory} from "src/TokenFactory.sol";
 
 contract TokenFactoryTest is Test {
@@ -100,8 +100,8 @@ contract TokenFactoryTest is Test {
         assertEq(IERC20(wrappedToken).balanceOf(address(tokenFactory)), 0);
         assertEq(IERC20(wrappedToken).totalSupply(), amount);
 
-        assertEq(IERC20(wrappedToken).name(), fakeToken.name());
-        assertEq(IERC20(wrappedToken).symbol(), fakeToken.symbol());
+        assertEq(IERC20(wrappedToken).name(), string.concat("LaPoste ", fakeToken.name()));
+        assertEq(IERC20(wrappedToken).symbol(), string.concat("p", fakeToken.symbol()));
         assertEq(IERC20(wrappedToken).decimals(), fakeToken.decimals());
 
         assertEq(tokenFactory.isWrapped(wrappedToken), true);

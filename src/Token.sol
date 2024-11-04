@@ -12,10 +12,10 @@ contract Token is ERC20, ERC20Burnable, Ownable {
     uint8 private _decimals;
 
     /// @notice Constructs the Token contract
-    /// @param name The name of the token
-    /// @param symbol The symbol of the token
+    /// @param name_ The name of the token
+    /// @param symbol_ The symbol of the token
     /// @param decimals_ The number of decimals for the token
-    constructor(string memory name, string memory symbol, uint8 decimals_) ERC20(name, symbol) {
+    constructor(string memory name_, string memory symbol_, uint8 decimals_) ERC20(name_, symbol_) {
         _decimals = decimals_;
     }
 
@@ -37,6 +37,18 @@ contract Token is ERC20, ERC20Burnable, Ownable {
     /// @param amount The amount of tokens to burn
     function burn(address from, uint256 amount) external onlyOwner {
         _burn(from, amount);
+    }
+
+    /// @notice Returns the name of the token
+    /// @return The name of the token
+    function name() public view virtual override returns (string memory) {
+        return string.concat("LaPoste ", super.name());
+    }
+
+    /// @notice Returns the symbol of the token
+    /// @return The symbol of the token
+    function symbol() public view virtual override returns (string memory) {
+        return string.concat("p", super.symbol());
     }
 
     /// @notice Returns the version of the token contract
